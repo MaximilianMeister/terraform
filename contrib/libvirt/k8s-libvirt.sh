@@ -177,11 +177,13 @@ fi
 
 [ -n "$TF_DEBUG" ] && export TF_LOG=debug
 [ -n "$FORCE" ] && force="--force"
+[ -n "$NO_COLOR" ] && no_color="--no-color"
 
 # Go kubes go!
 ./k8s-setup \
     --verbose \
     $force \
+    $no_color \
     -F $profile \
     -V salt_dir="$SALT_PATH" \
     -V cluster_prefix=$prefix \
