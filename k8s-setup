@@ -30,24 +30,32 @@ GRAY = "\033[33;30m".freeze
 CYAN = "\033[33;36m".freeze
 RESET = "\e[0m".freeze
 
+def colored_string(str, color)
+  if $colored_output
+    "#{color}#{str}#{RESET}"
+  else
+    str
+  end
+end
+
 def debug(msg)
-  $log.debug("#{YELLOW}#{msg}#{RESET}")
+  $log.debug(colored_string(msg, YELLOW))
 end
 
 def info(msg)
-  $log.info("#{GREEN}#{msg}#{RESET}")
+  $log.info(colored_string(msg, GREEN))
 end
 
 def warning(msg)
-  $log.warn("#{CYAN}#{msg}#{RESET}")
+  $log.warn(colored_string(msg, CYAN))
 end
 
 def error(msg)
-  $log.error("#{CYAN}#{msg}#{RESET}")
+  $log.error(colored_string(msg, CYAN))
 end
 
 def abort(msg)
-  $log.fatal("#{RED}#{msg}#{RESET}")
+  $log.fatal(colored_string(msg, RED))
   exit(1)
 end
 
@@ -161,6 +169,8 @@ end
 curr_dir = File.expand_path(Dir.pwd)
 output_tfs_filename = File.join(curr_dir, OUT_FILENAME)
 
+$colored_output = true
+
 $vars["terraforms"] = if Dir.exist?(File.join(curr_dir, "terraform"))
   File.join(curr_dir, "terraform")
 else
@@ -202,6 +212,9 @@ OptionParser.new do |parser|
   end
   parser.on_tail("-v", "--verbose", "Be verbose") do
     $log.level = Logger::DEBUG
+  end
+  parser.on_tail("--no-color", "Disable colored output") do
+    $colored_output = false
   end
 end.parse!
 
@@ -276,6 +289,7 @@ end
 if !ARGV.empty?
     cmd = ([terraform_path] + ARGV + $vars["force"].to_a).map(&:strip).join(" ")
     cmd += " -parallelism=1"
+    cmd += " -no-color" unless $colored_output
     debug("running: '#{cmd}'")
     Dir.chdir($vars["work_dir"])
     exec(cmd)
